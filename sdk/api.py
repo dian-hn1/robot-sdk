@@ -11,11 +11,16 @@ class Common:
     def get_sdk_version():
         """
         获取SDK版本
-        :return: [sdk_version, controller_version]
+        :return: {"sdk_version": str, "controller_version": str}
         """
         return (RobotApiBuilder()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.GetSDKVersion())
+                .post_data_process(
+            lambda data: {
+                "sdk_version": data[0],
+                "controller_version": data[1]
+            })
                 .build())
 
     @staticmethod
@@ -25,7 +30,7 @@ class Common:
         :return: ip
         """
         return (RobotApiBuilder()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.GetControllerIP())
                 .build())
 
@@ -41,8 +46,71 @@ class Common:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.SetSpeed(vel))
+                .build())
+
+    @staticmethod
+    def get_default_speed():
+        """
+        获取默认速度
+        :return: vel
+        """
+        return (RobotApiBuilder()
+                .api_call(
+            lambda robot: robot.instance.GetDefaultTransVel())
+                .build())
+
+    @staticmethod
+    def is_in_drag_teach():
+        """
+        查询机器人是否处于拖动示教模式
+        :return: bool - False: 非拖动示教模式, True: 在拖动示教模式
+        """
+        return (RobotApiBuilder()
+                .api_call(
+            lambda robot: robot.instance.IsInDragTeach())
+                .post_data_process(
+            lambda data: data == 1)
+                .build())
+
+    @staticmethod
+    def set_sys_var(var_id, value):
+        """
+        设置系统变量
+        :param var_id: 变量编号，范围[1~20]
+        :param value: 变量值
+        :return: null
+        """
+        return (RobotApiBuilder()
+                .only_error_code()
+                .api_call(
+            lambda robot: robot.instance.SetSysVarValue(var_id, value))
+                .build())
+
+    @staticmethod
+    def get_sys_var(var_id):
+        """
+        获取系统变量值
+        :param var_id: 变量编号，范围[1~20]
+        :return: [var_value]
+        """
+        return (RobotApiBuilder()
+                .api_call(
+            lambda robot: robot.instance.GetSysVarValue(var_id))
+                .build())
+
+    @staticmethod
+    def is_robot_motion_done():
+        """
+        查询机器人运动是否完成
+        :return: [state]
+        """
+        return (RobotApiBuilder()
+                .api_call(
+            lambda robot: robot.instance.GetRobotMotionDone())
+                .post_data_process(
+            lambda data: data == 1)
                 .build())
 
 
@@ -63,7 +131,7 @@ class Safety:
         """
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.ResetAllError())
                 .build())
 
@@ -74,7 +142,7 @@ class Safety:
         :return: [main_code sub_code]
         """
         return (RobotApiBuilder()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.GetRobotErrorCode())
                 .build())
 
@@ -89,7 +157,7 @@ class Safety:
             raise ValueError("Invalid mode")
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.Mode(mode))
                 .build())
 
@@ -123,7 +191,7 @@ class Safety:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.DragTeachSwitch(teach_mode))
                 .build())
 
@@ -140,7 +208,7 @@ class Safety:
             state = 0
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.RobotEnable(state))
                 .build())
 
@@ -152,21 +220,31 @@ class Safety:
         """
         return Safety.enable_robot(False)
 
-
-class Status:
-    """
-    机器人状态查询
-    """
-
     @staticmethod
-    def is_in_drag_teach():
+    def wait_ms(t_ms):
         """
-        查询机器人是否处于拖动示教模式
-        :return: int - 0: 非拖动示教模式, 1: 在拖动示教模式
+        等待指定时间
+        :param t_ms: 单位[ms]
+        :return: null
         """
         return (RobotApiBuilder()
-                .set_api_call(
-            lambda robot: robot.instance.IsInDragTeach())
+                .only_error_code()
+                .api_call(
+            lambda robot: robot.instance.WaitMs(t_ms))
+                .build())
+
+    @staticmethod
+    def wait_ms_internal(t_ms):
+        """
+        等待指定时间，并非指令
+        :param t_ms: 单位[ms]
+        :return: null
+        """
+        import time
+        return (RobotApiBuilder()
+                .only_error_code()
+                .api_call(
+            lambda robot: time.sleep(t_ms / 1000))
                 .build())
 
 
@@ -263,12 +341,12 @@ class Motion:
                 .set_tool(self.tool)
                 .set_user(self.user))
 
-    def jog_move(self, ref, nb, dir, max_dis, vel=-1, acc=-1):
+    def jog_move(self, ref, nb, direction, max_dis, vel=-1, acc=-1):
         """
         jog点动，非阻塞
         :param ref: 0 - 关节点动, 2 - 基坐标系点动, 4 - 工具坐标系点动, 8 - 工件坐标系点动
         :param nb: 1 - 1关节(x轴), 2 - 2关节(y轴), 3 - 3关节(z轴), 4 - 4关节(rx), 5 - 5关节(ry), 6 - 6关节(rz)
-        :param dir: 0 - 负方向，1 - 正方向
+        :param direction: 0 - 负方向，1 - 正方向
         :param max_dis: 单次点动最大角度 / 距离，单位 ° 或 mm
         :param vel: 速度百分比，[0~100]
         :param acc: 加速度百分比，[0~100]
@@ -278,7 +356,7 @@ class Motion:
             raise ValueError("Invalid ref")
         if nb not in [1, 2, 3, 4, 5, 6]:
             raise ValueError("Invalid nb")
-        if dir not in [0, 1]:
+        if direction not in [0, 1]:
             raise ValueError("Invalid dir")
 
         if vel < 0:
@@ -288,8 +366,8 @@ class Motion:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
-            lambda robot: robot.instance.StartJOG(ref, nb, dir, max_dis, vel, acc))
+                .api_call(
+            lambda robot: robot.instance.StartJOG(ref, nb, direction, max_dis, vel, acc))
                 .build())
 
     @staticmethod
@@ -304,7 +382,7 @@ class Motion:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.StopJOG(ref))
                 .build())
 
@@ -316,7 +394,7 @@ class Motion:
         """
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.ImmStopJOG())
                 .build())
 
@@ -328,7 +406,7 @@ class Motion:
         """
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.ServoMoveStart())
                 .build())
 
@@ -346,7 +424,7 @@ class Motion:
         """
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.ServoJ(joint_pos, acc, vel, cmd_time, filter_time, gain))
                 .build())
 
@@ -368,7 +446,7 @@ class Motion:
             pos_gain = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.ServoCart(mode, desc_pos, pos_gain, acc, vel, cmd_time, filter_time, gain))
                 .build())
 
@@ -380,7 +458,7 @@ class Motion:
         """
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.ServoMoveEnd())
                 .build())
 
@@ -418,7 +496,7 @@ class Motion:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.MoveJ(joint_pos, tool, user,
                                                desc_pos, vel, acc, ovl, exaxis_pos, blend_time, offset_flag,
                                                offset_pos))
@@ -447,7 +525,7 @@ class Motion:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.MoveCart(desc_pos, tool, user, vel, acc, ovl, blend_time, config))
                 .build())
 
@@ -487,7 +565,7 @@ class Motion:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.MoveL(desc_pos, tool, user,
                                                joint_pos, vel, acc, ovl, blend_radius, exaxis_pos, search,
                                                offset_flag, offset_pos))
@@ -542,7 +620,7 @@ class Motion:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.MoveC(desc_pos_p, tool_p, user_p, desc_pos_t, tool_t, user_t,
                                                joint_pos_p, joint_pos_t, vel_p, acc_p, exaxis_pos_p, offset_flag_p,
                                                vel_t, acc_t, exaxis_pos_t, offset_flag_t, offset_pos_t, ovl,
@@ -603,7 +681,7 @@ class Motion:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.Circle(desc_pos_p, tool_p, user_p, desc_pos_t, tool_t, user_t,
                                                 joint_pos_p, joint_pos_t, vel_p, acc_p, exaxis_pos_p,
                                                 vel_t, acc_t, exaxis_pos_t, ovl, offset_flag, offset_pos))
@@ -644,7 +722,7 @@ class Motion:
 
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.NewSpiral(desc_pos, tool, user, param,
                                                    joint_pos, vel, acc, exaxis_pos, ovl, offset_flag, offset_pos))
                 .build())
@@ -657,6 +735,6 @@ class Motion:
         """
         return (RobotApiBuilder()
                 .only_error_code()
-                .set_api_call(
+                .api_call(
             lambda robot: robot.instance.StopMotion())
                 .build())

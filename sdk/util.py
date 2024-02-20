@@ -9,13 +9,18 @@ class RobotApiBuilder(RobotApi):
     def __init__(self):
         super().__init__()
         self.__call_api__ = lambda robot: (0, None)
+        self.__post_data_process__ = super().__post_data_process__
         self.only_error_code = False
 
     def build(self):
         return self
 
-    def set_api_call(self, api_call):
+    def api_call(self, api_call):
         self.__call_api__ = api_call
+        return self
+
+    def post_data_process(self, post_data_process):
+        self.__post_data_process__ = post_data_process
         return self
 
     def only_error_code(self):

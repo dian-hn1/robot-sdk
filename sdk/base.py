@@ -1,4 +1,7 @@
+from typing import Optional, Any
+
 from fairino import Robot
+
 
 # SDK: https://fr-documentation.readthedocs.io/zh-cn/latest/SDKManual/python_intro.html
 # 机器人参数单位说明：机器人位置单位为毫米(mm)，姿态单位为度(°)。
@@ -28,7 +31,7 @@ class RobotException(Exception):
     def revoke(self):
         if self.revocable:
             ref = self.robot.instance.ResetAllError()
-            if ref != 0:
+            if ref != 0 and ref is not None:
                 raise RobotException(self.robot, ref)
         else:
             raise RuntimeError("This error is not revocable")
@@ -44,6 +47,8 @@ class RobotApi:
 
     def __init__(self):
         self.only_error_code = False
+        self.has_invoked = False
+        self.data = None
 
     def __call_api__(self, robot: Robot):
         """
@@ -53,20 +58,35 @@ class RobotApi:
         """
         raise NotImplementedError("Not implemented")
 
+    def __post_data_process__(self, data: Any) -> Any:
+        """
+        Process the return data.
+        :param data: the return data.
+        :return: the processed data.
+        """
+        return data
+
+    def get_data(self) -> Optional[Any]:
+        return self.data
+
     def invoke(self, robot: Robot):
         """
         Invoke the API.
         :param robot: the robot instance.
         :return: the return data.
         """
-        # ret, data = self.__call_api__(robot)
-        # if ret != 0:
-        #     raise RobotException(robot, ret)
+        if self.has_invoked:
+            raise RuntimeError("This API has been invoked")
+        self.has_invoked = True
 
         ret = self.__call_api__(robot)
-        if self.only_error_code and ret != 0:
-            raise RobotException(robot, ret)
-        ret, data = ret
-        if ret != 0:
-            raise RobotException(robot, ret)
-        return data
+        if self.only_error_code:
+            if ret != 0:
+                raise RobotException(robot, ret)
+            self.data = self.__post_call__(None)
+        else:
+            ret, data = ret
+            if ret != 0:
+                raise RobotException(robot, ret)
+            self.data = self.__post_call__(data)
+            return data
