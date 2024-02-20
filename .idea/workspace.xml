@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92627722-3554-41d2-986a-952817f0bfad" name="Changes" comment="Basic motion api">
+    <list default="true" id="92627722-3554-41d2-986a-952817f0bfad" name="Changes" comment="Make api more pythonic">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sdk/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/sdk/api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sdk/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/sdk/base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sdk/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/sdk/util.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,12 +79,21 @@
       <option name="project" value="LOCAL" />
       <updated>1708430583528</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Make api more pythonic">
+      <option name="closed" value="true" />
+      <created>1708432615027</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1708432615027</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initialize" />
     <MESSAGE value="Basic motion api" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basic motion api" />
+    <MESSAGE value="Make api more pythonic" />
+    <option name="LAST_COMMIT_MESSAGE" value="Make api more pythonic" />
   </component>
 </project>

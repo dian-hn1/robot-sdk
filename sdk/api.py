@@ -1,3 +1,5 @@
+from enum import Enum
+
 from sdk.base import Robot, RobotException, RobotApi
 from sdk.util import RobotApiBuilder
 
@@ -273,9 +275,11 @@ class Motion:
     工件号，[0~14]
     """
 
-    def __init__(self):
-        # raise NotImplementedError("This class is not supposed to be instantiated")
-        pass
+    def __init__(self, vel=20, acc=100, tool=0, user=0):
+        self.vel = vel
+        self.acc = acc
+        self.tool = tool
+        self.user = user
 
     def set_vel(self, vel):
         """
@@ -285,7 +289,7 @@ class Motion:
         """
         if vel < 0 or vel > 100:
             raise ValueError("Invalid velocity")
-        Motion.vel = vel
+        self.vel = vel
         return self
 
     def set_acc(self, acc):
@@ -296,7 +300,7 @@ class Motion:
         """
         if acc < 0 or acc > 100:
             raise ValueError("Invalid acceleration")
-        Motion.acc = acc
+        self.acc = acc
         return self
 
     def set_speed(self, vel):
@@ -737,4 +741,133 @@ class Motion:
                 .only_error_code()
                 .api_call(
             lambda robot: robot.instance.StopMotion())
+                .build())
+
+
+class Gripper:
+    """
+    机器人夹爪控制
+    """
+
+    @staticmethod
+    def get_config():
+        """
+        获取夹爪配置 - [number,company,device,softversion] 后面的参数暂不使用
+        :return: number
+        """
+        return (RobotApiBuilder()
+                .api_call(
+            lambda robot: robot.instance.GetGripperConfig())
+                .post_data_process(lambda data: data[0])
+                .build())
+
+    @staticmethod
+    def activate(index=0):
+        """
+        激活夹爪
+        :return: null
+        """
+        return (RobotApiBuilder()
+                .only_error_code()
+                .api_call(
+            lambda robot: robot.instance.ActGripper(index, 1))
+                .build())
+
+    @staticmethod
+    def reset(index=0):
+        """
+        复位夹爪
+        :return: null
+        """
+        return (RobotApiBuilder()
+                .only_error_code()
+                .api_call(
+            lambda robot: robot.instance.ActGripper(index, 0))
+                .build())
+
+    def move(self, pos, speed, force, maxtime=30000, block=True):
+        """
+        控制夹爪
+        :param pos: 位置百分比，范围[0~100]
+        :param speed: 速度百分比，范围[0~100]
+        :param force: 力矩百分比，范围[0~100]
+        :param maxtime: 最大等待时间，范围[0~30000]，单位[ms]
+        :param block: 0-阻塞，1-非阻塞
+        :return: null
+        """
+        if block:
+            block = 0
+        else:
+            block = 1
+
+        return (RobotApiBuilder()
+                .only_error_code()
+                .api_call(
+            lambda robot: robot.instance.MoveGripper(self.index, pos, speed, force, maxtime, block))
+                .build())
+
+    @staticmethod
+    def get_status():
+        """
+        获取夹爪状态
+        :return: [fault,status] fault:0-无错误，1-有错误 status:0-夹爪未激活，1-夹爪激活
+        """
+        return (RobotApiBuilder()
+                .api_call(
+            lambda robot: robot.instance.GetGripperStatus())
+                .build())
+
+    @staticmethod
+    def motion_done():
+        """
+        获取夹爪运动状态 [fault,status] fault:0-无错误，1-有错误 status:0-运动未完成，1-运动完成
+        :return: status 运动是否完成
+        """
+        return (Gripper.get_status()
+                       .post_data_process(
+            lambda data: data[1] == 1))
+
+    @staticmethod
+    def set_config(company, device, soft_version=0, bus=0):
+        # sh*t api by Fairino
+        """
+        配置夹爪
+        :param company: 夹爪厂商，1-Robotiq，2-慧灵，3-天机，4-大寰，5-知行
+        :param device: 设备号，Robotiq(0-2F-85系列)，慧灵(0-NK系列,1-Z-EFG-100)，天机(0-TEG-110)，大寰(0-PGI-140)，知行(0-CTPM2F20)
+        :param soft_version: 软件版本号，暂不使用，默认为0
+        :param bus: 设备挂载末端总线位置，暂不使用，默认为0
+        :return: null
+        """
+        return (RobotApiBuilder()
+                .only_error_code()
+                .api_call(
+            lambda robot: robot.instance.SetGripperConfig(company, device, soft_version, bus))
+                .build())
+
+    @staticmethod
+    def computer_pre_pick(desc_pos, z_length, z_angle):
+        # making second sh*t api by Fairino
+        """
+        计算预抓取点-视觉
+        :param desc_pos: 夹抓取点笛卡尔位姿
+        :param z_length: z轴偏移量
+        :param z_angle: 绕z轴旋转偏移量
+        """
+        return (RobotApiBuilder()
+                .api_call(
+            lambda robot: robot.instance.ComputePrePick(desc_pos, z_length, z_angle))
+                .build())
+
+    @staticmethod
+    def computer_post_pick(desc_pos, z_length, z_angle):
+        # making third sh*t api by Fairino
+        """
+        计算撤退点-视觉
+        :param desc_pos: 夹抓取点笛卡尔位姿
+        :param z_length: z轴偏移量
+        :param z_angle: 绕z轴旋转偏移量
+        """
+        return (RobotApiBuilder()
+                .api_call(
+            lambda robot: robot.instance.ComputePostPick(desc_pos, z_length, z_angle))
                 .build())
