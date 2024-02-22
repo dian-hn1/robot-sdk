@@ -845,7 +845,7 @@ class Gripper:
                 .build())
 
     @staticmethod
-    def computer_pre_pick(desc_pos, z_length, z_angle):
+    def compute_pre_pick(desc_pos, z_length, z_angle):
         # making second sh*t api by Fairino
         """
         计算预抓取点-视觉
@@ -859,7 +859,7 @@ class Gripper:
                 .build())
 
     @staticmethod
-    def computer_post_pick(desc_pos, z_length, z_angle):
+    def compute_post_pick(desc_pos, z_length, z_angle):
         # making third sh*t api by Fairino
         """
         计算撤退点-视觉
