@@ -1,5 +1,3 @@
-from enum import Enum
-
 from sdk.base import Robot, RobotException, RobotApi
 from sdk.util import RobotApiBuilder
 
@@ -106,7 +104,7 @@ class Common:
     def is_robot_motion_done():
         """
         查询机器人运动是否完成
-        :return: [state]
+        :return: [state: bool]
         """
         return (RobotApiBuilder()
                 .api_call(

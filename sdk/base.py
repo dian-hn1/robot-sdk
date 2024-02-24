@@ -1,22 +1,22 @@
 from typing import Optional, Any
 
-from fairino import Robot
+from fairino import Robot as FrRobot
 
 
 # SDK: https://fr-documentation.readthedocs.io/zh-cn/latest/SDKManual/python_intro.html
 # 机器人参数单位说明：机器人位置单位为毫米(mm)，姿态单位为度(°)。
 
 
-class Robot():
+class Robot:
     def __init__(self, ip="192.168.58.2"):
-        self.instance = Robot.RPC(ip)
+        self.instance = FrRobot.RPC(ip)
 
     def call(self, api):
         return api.invoke(self)
 
 
 class RobotException(Exception):
-    def __init__(self, robot, code, revocable=True):
+    def __init__(self, robot: Robot, code: int, revocable=True):
         super().__init__(f"Robot error: {code}")
         self.robot = robot
         self.code = code
@@ -29,6 +29,8 @@ class RobotException(Exception):
         return self.code
 
     def revoke(self):
+        # Actually this is not a good idea to revoke an error,
+        # since the api will revoke all the errors.
         if self.revocable:
             ref = self.robot.instance.ResetAllError()
             if ref != 0 and ref is not None:
@@ -83,10 +85,10 @@ class RobotApi:
         if self.only_error_code:
             if ret != 0:
                 raise RobotException(robot, ret)
-            self.data = self.__post_call__(None)
+            self.data = self.__post_data_process__(None)
         else:
             ret, data = ret
             if ret != 0:
                 raise RobotException(robot, ret)
-            self.data = self.__post_call__(data)
+            self.data = self.__post_data_process__(data)
             return data

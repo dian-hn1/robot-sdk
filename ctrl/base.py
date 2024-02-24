@@ -1,8 +1,8 @@
-from enum import Enum
+from sdk.base import Robot
 
 
 class BaseController:
-    def __init__(self, robot):
+    def __init__(self, robot: Robot):
         self.robot = robot
         self.act = lambda time, *args: None  # default act function, args are not defined
 
@@ -11,12 +11,12 @@ class BaseController:
 
 
 class ButtonController(BaseController):
-    def act(self, time, is_pressed):
+    def act(self, time, status):
         pass
 
 
 class DebounceController(ButtonController):
-    def __init__(self, wrapped_controller, debounce_time=50):
+    def __init__(self, wrapped_controller: ButtonController, debounce_time=50):
         """
         debounce controller for one-button controller.
         :param wrapped_controller: The controller to be wrapped.
@@ -28,13 +28,13 @@ class DebounceController(ButtonController):
         self.last_act_time = 0
         self.last_act_state = False
 
-    def act(self, time, is_pressed):
-        if is_pressed != self.last_act_state:
-            self.last_act_state = is_pressed
+    def act(self, time, status):
+        if status != self.last_act_state:
+            self.last_act_state = status
             self.last_act_time = time
         elif time - self.last_act_time >= self.debounce_time:
             self.last_act_time = time
-            self.wrapped_controller.act(time, is_pressed)
+            self.wrapped_controller.act(time, status)
 
 
 class TriggerController(ButtonController):
@@ -49,11 +49,11 @@ class TriggerController(ButtonController):
         self.wrapped_controller = wrapped_controller
         self.last_act_state = False
 
-    def act(self, time, is_pressed):
-        if is_pressed and not self.last_act_state:
-            self.last_act_state = is_pressed  # thread safe
-            self.wrapped_controller.act(time, is_pressed)
-        self.last_act_state = is_pressed
+    def act(self, time, status):
+        if status and not self.last_act_state:
+            self.last_act_state = status  # thread safe
+            self.wrapped_controller.act(time, status)
+        self.last_act_state = status
 
 
 class GateController(ButtonController):
@@ -67,6 +67,12 @@ class GateController(ButtonController):
         self.wrapped_set_controller = TriggerController(wrapped_set_controller)
         self.wrapped_reset_controller = TriggerController(wrapped_reset_controller)
 
-    def act(self, time, is_pressed):
-        self.wrapped_set_controller.act(time, is_pressed)
-        self.wrapped_reset_controller.act(time, not is_pressed)
+    def act(self, time, status):
+        self.wrapped_set_controller.act(time, status)
+        self.wrapped_reset_controller.act(time, not status)
+
+
+class MotionController(BaseController):
+
+    def act(self, time, horizontal, vertical):
+        pass
