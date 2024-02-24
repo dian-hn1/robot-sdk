@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="92627722-3554-41d2-986a-952817f0bfad" name="Changes" comment="params optimized">
-      <change afterPath="$PROJECT_DIR$/ctrl/ros-joy.py" afterDir="false" />
+    <list default="true" id="92627722-3554-41d2-986a-952817f0bfad" name="Changes" comment="smallest runnable app">
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ctrl/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/ctrl/base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sdk/apis.py" beforeDir="false" afterPath="$PROJECT_DIR$/sdk/apis.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,6 +23,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="SET_USER_NAME_GLOBALLY" value="false" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
@@ -122,7 +123,23 @@
       <option name="project" value="LOCAL" />
       <updated>1708752438214</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="basic implement of ros-joy, no movement">
+      <option name="closed" value="true" />
+      <created>1708758924296</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1708758924296</updated>
+    </task>
+    <task id="LOCAL-00009" summary="smallest runnable app">
+      <option name="closed" value="true" />
+      <created>1708759126151</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1708759126151</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -144,6 +161,8 @@
     <MESSAGE value="rename some api" />
     <MESSAGE value="controller implement (one-button)" />
     <MESSAGE value="params optimized" />
-    <option name="LAST_COMMIT_MESSAGE" value="params optimized" />
+    <MESSAGE value="basic implement of ros-joy, no movement" />
+    <MESSAGE value="smallest runnable app" />
+    <option name="LAST_COMMIT_MESSAGE" value="smallest runnable app" />
   </component>
 </project>
