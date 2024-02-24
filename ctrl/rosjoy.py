@@ -13,7 +13,7 @@ host = '127.0.0.1'
 
 class RosJoy(threading.Thread):
     def __init__(self, robot: Robot, host=host, port=port):
-        super().__init__(daemon=True)
+        super().__init__(daemon=False)
         self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.udp.bind((host, port))
         self.prev_data = None
@@ -143,7 +143,7 @@ class RosJoy(threading.Thread):
                 self.robot.call(apis.Safety.disable_robot())
                 # self.robot.call(apis.Safety.mode_switch_manual())
 
-    class MotionSpeedControl(TriggerController):
+    class MotionSpeedControl(ButtonController):
         def __init__(self, outer, delta=5):
             super().__init__(outer.robot)
             self.outer = outer
@@ -159,7 +159,7 @@ class RosJoy(threading.Thread):
                 print(f"Speed changed: {speed}")
                 self.robot.call(self.outer.motion.set_speed(speed))
 
-    class GripperSpeedControl(TriggerController):
+    class GripperSpeedControl(ButtonController):
         def __init__(self, outer, delta=5):
             super().__init__(outer.robot)
             self.outer = outer
@@ -175,7 +175,7 @@ class RosJoy(threading.Thread):
                 print(f"Gripper Speed changed: {speed}")
                 self.outer.gripper.set_speed(speed)
 
-    class GripperForceControl(TriggerController):
+    class GripperForceControl(ButtonController):
         def __init__(self, outer, delta=5):
             super().__init__(outer.robot)
             self.outer = outer
@@ -191,7 +191,7 @@ class RosJoy(threading.Thread):
                 print(f"Gripper Force changed: {force}")
                 self.outer.gripper.set_force(force)
 
-    class GripperControl(TriggerController):
+    class GripperControl(ButtonController):
         def __init__(self, outer, pos):
             super().__init__(outer.robot)
             self.robot = outer.robot
