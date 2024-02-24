@@ -1,4 +1,3 @@
-from sdk.base import Robot, RobotException, RobotApi
 from sdk.util import RobotApiBuilder
 
 
@@ -747,6 +746,34 @@ class Gripper:
     机器人夹爪控制
     """
 
+    def __init__(self, index=0, speed=50, force=20):
+        self.index = index
+        self.pos = 100
+        self.speed = speed
+        self.force = force
+
+    def set_speed(self, speed):
+        """
+        设置夹爪速度
+        :param speed: 速度百分比，范围[0~100]
+        :return: null
+        """
+        if speed < 0 or speed > 100:
+            raise ValueError("Invalid speed")
+        self.speed = speed
+        return RobotApiBuilder().build()
+
+    def set_force(self, force):
+        """
+        设置夹爪力度
+        :param force: 力度百分比，范围[0~100]
+        :return: null
+        """
+        if force < 0 or force > 100:
+            raise ValueError("Invalid force")
+        self.force = force
+        return RobotApiBuilder().build()
+
     @staticmethod
     def get_config():
         """
@@ -759,8 +786,7 @@ class Gripper:
                 .post_data_process(lambda data: data[0])
                 .build())
 
-    @staticmethod
-    def activate(index=0):
+    def activate(self):
         """
         激活夹爪
         :return: null
@@ -768,11 +794,10 @@ class Gripper:
         return (RobotApiBuilder()
                 .only_error_code()
                 .api_call(
-            lambda robot: robot.instance.ActGripper(index, 1))
+            lambda robot: robot.instance.ActGripper(self.index, 1))
                 .build())
 
-    @staticmethod
-    def reset(index=0):
+    def reset(self):
         """
         复位夹爪
         :return: null
@@ -780,28 +805,27 @@ class Gripper:
         return (RobotApiBuilder()
                 .only_error_code()
                 .api_call(
-            lambda robot: robot.instance.ActGripper(index, 0))
+            lambda robot: robot.instance.ActGripper(self.index, 0))
                 .build())
 
-    def move(self, pos, speed, force, maxtime=30000, block=True):
+    def deactivate(self):
+        return self.reset()
+
+    def move(self, pos, maxtime=30000, block=True):
         """
-        控制夹爪
+        控制夹爪运动
         :param pos: 位置百分比，范围[0~100]
-        :param speed: 速度百分比，范围[0~100]
-        :param force: 力矩百分比，范围[0~100]
         :param maxtime: 最大等待时间，范围[0~30000]，单位[ms]
         :param block: 0-阻塞，1-非阻塞
         :return: null
         """
-        if block:
-            block = 0
-        else:
-            block = 1
+        block = 0 if block else 1
+        self.pos = pos
 
         return (RobotApiBuilder()
                 .only_error_code()
                 .api_call(
-            lambda robot: robot.instance.MoveGripper(self.index, pos, speed, force, maxtime, block))
+            lambda robot: robot.instance.MoveGripper(self.index, pos, self.speed, self.force, maxtime, block))
                 .build())
 
     @staticmethod
@@ -812,13 +836,13 @@ class Gripper:
         """
         return (RobotApiBuilder()
                 .api_call(
-            lambda robot: robot.instance.GetGripperStatus())
+            lambda robot: robot.instance.GetGripperMotionDone())
                 .build())
 
     @staticmethod
-    def motion_done():
+    def is_motion_done():
         """
-        获取夹爪运动状态 [fault,status] fault:0-无错误，1-有错误 status:0-运动未完成，1-运动完成
+        夹爪是否运动完成
         :return: status 运动是否完成
         """
         return (Gripper.get_status()

@@ -50,7 +50,7 @@ class TriggerController(ButtonController):
         self.last_act_state = False
 
     def act(self, time, status):
-        if status and not self.last_act_state:
+        if status and status != self.last_act_state:
             self.last_act_state = status  # thread safe
             self.wrapped_controller.act(time, status)
         self.last_act_state = status
