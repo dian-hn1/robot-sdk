@@ -10,17 +10,13 @@ The communication code(sdk/) is used to communicate with the robot through netwo
 Use the game controller to control the robot.
 |Button|Function|
 |---|---|
-|Left Stick|not yet|
-|Right Stick|not yet|
-|Cross x|Gripper Speed|
-|Cross y|Robot Speed|
+|Left Stick|Move x/y|
+|Right Stick|Move|
+|Cross|Move|
 |A|not yet|
 |B|not yet|
-|X|Gripper close|
-|Y|Gripper open|
+|X|Motion Speed Down|
+|Y|Motion Speed Up|
 |Start|Enable control|
 |Select|Disable control|
-|LB|Gripper force up|
-|RB|Gripper force down|
-|LT|not yet|
-|RT|not yet|
+|LT & RT|Force Stop|

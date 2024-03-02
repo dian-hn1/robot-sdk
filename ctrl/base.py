@@ -28,13 +28,14 @@ class DebounceController(ButtonController):
         self.last_act_time = 0
         self.last_act_state = False
 
-    def act(self, time, status):
+    def act(self, period, status):
+        self.last_act_state += period
         if status != self.last_act_state:
             self.last_act_state = status
-            self.last_act_time = time
-        elif time - self.last_act_time >= self.debounce_time:
-            self.last_act_time = time
-            self.wrapped_controller.act(time, status)
+            self.last_act_time = 0
+        elif self.last_act_state >= self.debounce_time:
+            self.last_act_time = 0
+            self.wrapped_controller.act(period, status)
 
 
 class TriggerController(ButtonController):
@@ -49,10 +50,10 @@ class TriggerController(ButtonController):
         self.wrapped_controller = wrapped_controller
         self.last_act_state = False
 
-    def act(self, time, status):
+    def act(self, period, status):
         if status and status != self.last_act_state:
             self.last_act_state = status  # thread safe
-            self.wrapped_controller.act(time, status)
+            self.wrapped_controller.act(period, status)
         self.last_act_state = status
 
 
@@ -67,12 +68,12 @@ class GateController(ButtonController):
         self.wrapped_set_controller = TriggerController(wrapped_set_controller)
         self.wrapped_reset_controller = TriggerController(wrapped_reset_controller)
 
-    def act(self, time, status):
-        self.wrapped_set_controller.act(time, status)
-        self.wrapped_reset_controller.act(time, not status)
+    def act(self, period, status):
+        self.wrapped_set_controller.act(period, status)
+        self.wrapped_reset_controller.act(period, not status)
 
 
 class MotionController(BaseController):
 
-    def act(self, time, horizontal, vertical):
+    def act(self, period, horizontal, vertical):
         pass

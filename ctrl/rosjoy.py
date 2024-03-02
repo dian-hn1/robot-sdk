@@ -2,8 +2,7 @@ import threading
 import time
 import socket
 
-
-from ctrl.base import ButtonController, TriggerController, DebounceController
+from ctrl.base import ButtonController, TriggerController, DebounceController, MotionController, BaseController
 from sdk import apis
 from sdk.base import Robot, RobotException
 
@@ -26,14 +25,14 @@ class RosJoy(threading.Thread):
 
         self.start_control = DebounceController(TriggerController(self.StartControl(self)))
         self.select_control = DebounceController(TriggerController(self.SelectControl(self)))
-        self.cross_down_control = DebounceController(TriggerController(self.MotionSpeedControl(self, -5)))
-        self.cross_up_control = DebounceController(TriggerController(self.MotionSpeedControl(self, 5)))
-        self.cross_left_control = DebounceController(TriggerController(self.GripperSpeedControl(self, -5)))
-        self.cross_right_control = DebounceController(TriggerController(self.GripperSpeedControl(self, 5)))
-        self.lb_control = DebounceController(TriggerController(self.GripperForceControl(self, -5)))
-        self.rb_control = DebounceController(TriggerController(self.GripperForceControl(self, 5)))
-        self.x_control = DebounceController(TriggerController(self.GripperControl(self, 0)))
-        self.y_control = DebounceController(TriggerController(self.GripperControl(self, 80)))
+        self.x_control = DebounceController(TriggerController(self.MotionSpeedControl(self, -5)))
+        self.y_control = DebounceController(TriggerController(self.MotionSpeedControl(self, 5)))
+        self.lb_control = DebounceController(TriggerController(self.GripperControl(self, 0)))
+        self.rb_control = DebounceController(TriggerController(self.GripperControl(self, 90)))
+        self.lj_control = self.MotionControl(self, 2, [0.5, 0, 0, 0, 0, 0], [0, 0.5, 0, 0, 0, 0])
+        self.rj_control = self.MotionControl(self, 2, [0, 0, 0.5, 0, 0, 0], [0, 0, 0, 0, 0, 0.5])
+        self.cross_control = self.MotionControl(self, 2, [0, 0, 0, 0, 0.5, 0], [0, 0, 0, 0.5, 0, 0])
+        self.stop_control = self.StopControl(self, 0.7)
 
     def run(self):
         while True:
@@ -41,7 +40,7 @@ class RosJoy(threading.Thread):
             current_ms = time.time_ns() // 1000000
             if self.prev_data is not None and self.prev_data["time"] - current_ms < 2:
                 continue
-            if len(data) != 16*4:
+            if len(data) != 16 * 4:
                 continue
             data = self.data_unpack(data, current_ms)
 
@@ -58,17 +57,17 @@ class RosJoy(threading.Thread):
 
             self.prev_data = data
             try:
-                self.start_control.act(current_ms, data["buttons"]["START"])
-                self.select_control.act(current_ms, data["buttons"]["SELECT"])
+                self.start_control.act(period, data["buttons"]["START"])
+                self.select_control.act(period, data["buttons"]["SELECT"])
                 if self.started and not self.in_err:
-                    self.cross_down_control.act(current_ms, data["cross_y"] == 1)
-                    self.cross_up_control.act(current_ms, data["cross_y"] == -1)
-                    self.cross_left_control.act(current_ms, data["cross_x"] == 1)
-                    self.cross_right_control.act(current_ms, data["cross_x"] == -1)
-                    self.lb_control.act(current_ms, data["buttons"]["LB"])
-                    self.rb_control.act(current_ms, data["buttons"]["RB"])
-                    self.x_control.act(current_ms, data["buttons"]["X"])
-                    self.y_control.act(current_ms, data["buttons"]["Y"])
+                    self.x_control.act(period, data["buttons"]["X"])
+                    self.y_control.act(period, data["buttons"]["Y"])
+                    self.lb_control.act(period, data["buttons"]["LB"])
+                    self.rb_control.act(period, data["buttons"]["RB"])
+                    self.lj_control.act(period, data["left_x"], data["left_y"])
+                    self.rj_control.act(period, data["right_x"], data["right_y"])
+                    self.cross_control.act(period, data["cross_x"], data["cross_y"])
+                    self.stop_control.act(period, data["buttons"]["LT"], data["buttons"]["RT"])
             except RobotException as e:
                 print(e)
                 self.in_err = True
@@ -98,8 +97,8 @@ class RosJoy(threading.Thread):
                 "Y": button_data[3],
                 "LB": button_data[4],
                 "RB": button_data[5],
-                "LT": button_data[6],
-                "RT": button_data[7],
+                "LT": raw_data[6 + 6],
+                "RT": raw_data[6 + 7],  # they are not buttons, but triggers
                 "SELECT": button_data[8],
                 "START": button_data[9]
             }
@@ -128,6 +127,7 @@ class RosJoy(threading.Thread):
         """
         Now works as a stop button
         """
+
         def __init__(self, outer):
             super().__init__(outer.robot)
             self.outer = outer
@@ -159,38 +159,6 @@ class RosJoy(threading.Thread):
                 print(f"Speed changed: {speed}")
                 self.robot.call(self.outer.motion.set_speed(speed))
 
-    class GripperSpeedControl(ButtonController):
-        def __init__(self, outer, delta=5):
-            super().__init__(outer.robot)
-            self.outer = outer
-            self.delta = delta
-
-        def act(self, _, status):
-            if status:
-                speed = apis.Motion.vel + self.delta
-                if speed < 0:
-                    speed = 0
-                elif speed > 100:
-                    speed = 100
-                print(f"Gripper Speed changed: {speed}")
-                self.outer.gripper.set_speed(speed)
-
-    class GripperForceControl(ButtonController):
-        def __init__(self, outer, delta=5):
-            super().__init__(outer.robot)
-            self.outer = outer
-            self.delta = delta
-
-        def act(self, _, status):
-            if status:
-                force = self.outer.gripper.get_force() + self.delta
-                if force < 0:
-                    force = 0
-                elif force > 100:
-                    force = 100
-                print(f"Gripper Force changed: {force}")
-                self.outer.gripper.set_force(force)
-
     class GripperControl(ButtonController):
         def __init__(self, outer, pos):
             super().__init__(outer.robot)
@@ -198,7 +166,36 @@ class RosJoy(threading.Thread):
             self.outer = outer
             self.pos = pos
 
+            outer.gripper.set_speed(40)
+            outer.gripper.set_force(50)
+
         def act(self, _, status):
             if status:
                 print(f"Gripper Position changed: {self.pos}")
                 self.robot.call(self.outer.gripper.move(self.pos, block=False))
+
+    class MotionControl(MotionController):
+        def __init__(self, outer, mode, delta_h, delta_v):
+            super().__init__(outer.robot)
+            self.outer = outer
+            self.motion = outer.motion
+            self.mode = mode
+            self.delta_h = delta_h
+            self.delta_v = delta_v
+            self.motion.set_speed(50)
+
+        def act(self, period, horizontal, vertical):
+            now_pos = [horizontal * self.delta_h[i] + vertical * self.delta_v[i] for i in range(6)]
+
+            self.robot.call(self.motion.servo_cart(
+                self.mode, now_pos, cmd_time=period / 1000.0, vel=self.motion.vel))
+
+    class StopControl(BaseController):
+        def __init__(self, outer, trigger_gate=0.7):
+            super().__init__(outer.robot)
+            self.outer = outer
+
+        def act(self, _, lt, rt):
+            if lt > 0.7 and rt > 0.7:
+                self.robot.call(apis.Motion.servo_end())
+                self.robot.call(apis.Motion.stop_motion())
