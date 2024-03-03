@@ -44,7 +44,7 @@ class Common:
             raise ValueError("Invalid velocity")
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.SetSpeed(vel))
                 .build())
@@ -82,7 +82,7 @@ class Common:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.SetSysVarValue(var_id, value))
                 .build())
@@ -129,7 +129,7 @@ class Safety:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.ResetAllError())
                 .build())
@@ -155,7 +155,7 @@ class Safety:
         if mode not in [0, 1]:
             raise ValueError("Invalid mode")
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.Mode(mode))
                 .build())
@@ -189,7 +189,7 @@ class Safety:
             teach_mode = 0
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.DragTeachSwitch(teach_mode))
                 .build())
@@ -206,7 +206,7 @@ class Safety:
         else:
             state = 0
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.RobotEnable(state))
                 .build())
@@ -227,7 +227,7 @@ class Safety:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.WaitMs(t_ms))
                 .build())
@@ -241,7 +241,7 @@ class Safety:
         """
         import time
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: time.sleep(t_ms / 1000))
                 .build())
@@ -366,7 +366,7 @@ class Motion:
             acc = self.acc
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.StartJOG(ref, nb, direction, max_dis, vel, acc))
                 .build())
@@ -382,7 +382,7 @@ class Motion:
             raise ValueError("Invalid ref")
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.StopJOG(ref))
                 .build())
@@ -394,7 +394,7 @@ class Motion:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.ImmStopJOG())
                 .build())
@@ -406,7 +406,7 @@ class Motion:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.ServoMoveStart())
                 .build())
@@ -424,7 +424,7 @@ class Motion:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.ServoJ(joint_pos, acc, vel, cmd_time, filter_time, gain))
                 .build())
@@ -446,7 +446,7 @@ class Motion:
         if pos_gain is None:
             pos_gain = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.ServoCart(mode, desc_pos, pos_gain, acc, vel, cmd_time, filter_time, gain))
                 .build())
@@ -458,7 +458,7 @@ class Motion:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.ServoMoveEnd())
                 .build())
@@ -496,7 +496,7 @@ class Motion:
             acc = self.acc
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.MoveJ(joint_pos, tool, user,
                                                desc_pos, vel, acc, ovl, exaxis_pos, blend_time, offset_flag,
@@ -525,7 +525,7 @@ class Motion:
             acc = self.acc  # 暂不开放
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.MoveCart(desc_pos, tool, user, vel, acc, ovl, blend_time, config))
                 .build())
@@ -565,7 +565,7 @@ class Motion:
             acc = self.acc
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.MoveL(desc_pos, tool, user,
                                                joint_pos, vel, acc, ovl, blend_radius, exaxis_pos, search,
@@ -620,7 +620,7 @@ class Motion:
             acc_t = self.acc
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.MoveC(desc_pos_p, tool_p, user_p, desc_pos_t, tool_t, user_t,
                                                joint_pos_p, joint_pos_t, vel_p, acc_p, exaxis_pos_p, offset_flag_p,
@@ -681,7 +681,7 @@ class Motion:
             acc_t = self.acc
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.Circle(desc_pos_p, tool_p, user_p, desc_pos_t, tool_t, user_t,
                                                 joint_pos_p, joint_pos_t, vel_p, acc_p, exaxis_pos_p,
@@ -722,7 +722,7 @@ class Motion:
             user = self.user
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.NewSpiral(desc_pos, tool, user, param,
                                                    joint_pos, vel, acc, exaxis_pos, ovl, offset_flag, offset_pos))
@@ -735,7 +735,7 @@ class Motion:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.StopMotion())
                 .build())
@@ -792,7 +792,7 @@ class Gripper:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.ActGripper(self.index, 1))
                 .build())
@@ -803,7 +803,7 @@ class Gripper:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.ActGripper(self.index, 0))
                 .build())
@@ -823,7 +823,7 @@ class Gripper:
         self.pos = pos
 
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.MoveGripper(self.index, pos, self.speed, self.force, maxtime, block))
                 .build())
@@ -861,7 +861,7 @@ class Gripper:
         :return: null
         """
         return (RobotApiBuilder()
-                .only_error_code()
+                .set_only_error_code()
                 .api_call(
             lambda robot: robot.instance.SetGripperConfig(company, device, soft_version, bus))
                 .build())

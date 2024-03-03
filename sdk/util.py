@@ -23,6 +23,6 @@ class RobotApiBuilder(RobotApi):
         self.__post_data_process__ = post_data_process
         return self
 
-    def only_error_code(self):
+    def set_only_error_code(self):
         self.only_error_code = True
         return self
